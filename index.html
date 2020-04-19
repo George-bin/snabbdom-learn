@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Snabbdom学习</title>
+    <!-- <script src="./snabbdom-master/es/snabbdom.js"></script>
+    <script src="./snabbdom-master/es/modules/class.js"></script>
+    <script src="./snabbdom-master/es/modules/props.js"></script>
+    <script src="./snabbdom-master/es/modules/style.js"></script>
+    <script src="./snabbdom-master/es/modules/eventlisteners.js"></script>
+    <script src="./snabbdom-master/es/h.js"></script> -->
+  </head>
+  <body>
+    <div id="app">Hello, World!</div>
+    <script type="module">
+      import { init, h } from './es/snabbdom.js';
+      import classModule from './es/modules/class.js';
+      import propsModule from './es/modules/props.js';
+      import styleModule from './es/modules/style.js';
+      import eventListenersModule from './es/modules/eventlisteners.js';
+      /**
+       * patch补丁函数：
+       * 1、加载dom操作核心模块：class、props、style、eventlisteners => 各个模块中定义了对应属性的生命周期函数；
+       * 2、定义了程序运行期间的所有钩子，每个钩子对应所有模块中对应的生命周期函数；
+       * 3、在patch函数的各个阶段调用对应的钩子 => 即：所有模块中的对应生命周期函数。
+       */
+      debugger
+      var patch = init([
+        classModule,
+        propsModule,
+        styleModule,
+        eventListenersModule,
+    ]);
+
+      // 获取页面原始的DOM节点
+      var app = document.getElementById("app");
+      // 构造一个虚拟dom => 通过h函数建立虚拟dom的 => 生成vnode
+      var vnode = h(
+        "div#app",
+        {
+          class: { container: true },
+          style: { color: "#f00" },
+          attrs: { href: 'hello' }
+        },
+        "Hello, George!"
+        // [
+        //   h("p.name",
+        //     {
+        //       style: { color: "blue", fontWeight: "bold" },
+        //     },
+        //     "My name is George!"),
+        //   h("a.hi", 
+        //     {
+        //       props: { href: '/foo' }
+        //     }, "hi，我是小智")
+        // ]
+      );
+      // 第一次渲染，使用vnode替换app节点的内容
+      patch(app, vnode);
+
+      // 创建一个新的vnode
+      var newVnode = h('div#app',
+        {style: {color: 'red'}},
+        [
+          h('p.name', 
+          {
+            style: {fontWeight: 'normal'}
+          }, "My name is tugenhua"),
+          ' and yyyyy',
+          h('a',
+            {
+              props: {href: '/bar'}
+            }, '我是空智22')
+        ]
+      );
+
+      // 将新的newVnode patch到vnode中
+      // setTimeout(() => {
+      //   patch(vnode, newVnode);
+      // }, 5000);
+    </script>
+  </body>
+</html>
