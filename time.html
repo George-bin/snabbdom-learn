@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="./utils/jquery.min.js"></script>
+    <title>时间旅行</title>
+    <style>
+      h3 {
+        margin: 0;
+        font-size: 1em;
+        text-decoration: underline;
+      }
+
+      #row {
+        width: 19em;
+        margin: 0 auto;
+      }
+
+      #app {
+        width: 45%;
+        float: left;
+        border-right: 1px solid grey;
+      }
+      #app small {
+        color: #afafaf;
+      }
+      #ui,
+      button {
+        margin-top: 1em;
+      }
+      #ui ul {
+        margin-top: 0.3em;
+      }
+      #ui li {
+        cursor: pointer;
+      }
+      #ui li:hover {
+        text-decoration: line-through;
+      }
+
+      #time-travel {
+        width: 40%;
+        float: left;
+        padding-left: 1em;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="row">
+      <div id="app">
+        <h3>Sample app</h3>
+        <button id="add">Add word</button>
+        <div id="ui"></div>
+        <small>(click word to delete)</small>
+      </div>
+      <div id="time-travel">
+        <h3>Time travel</h3>
+        <button id="back">Back</button>
+        <button id="next">Next</button>
+        <p id="time-pos"></p>
+      </div>
+    </div>
+    <script>
+      // Our app
+      var state = { items: ["dog", "jumps"] };
+
+      function render(state) {
+        var span = '<span id="count">Words: ' + state.items.length + "</span>";
+        var lis = state.items.map(function (item) {
+          return "<li>" + item + "</li>";
+        });
+        return span + "<ul>" + lis.join("") + "</ul>";
+      }
+
+      function updateUI(loading) {
+        if (!loading) saveState();
+        $("#ui").html(render(state));
+      }
+
+      // app events
+      $("#ui").on("click", "li", function () {
+        console.log('index', $(this).index())
+        state.items.splice($(this).index(), 1);
+        updateUI();
+      });
+
+      $("#add").on("click", function () {
+        state.items.push(getNextString());
+        updateUI();
+      });
+
+      function getNextString() {
+        var words = "The quick brown fox jumps over the lazy dog".split(" ");
+        return words[Math.floor(Math.random() * words.length)];
+      }
+
+      updateUI();
+
+      // Time travel
+      var time;
+
+      function updateTimeUI() {
+        $("#time-pos").html(
+          "Position " + (time.pos + 1) + " of " + time.history.length
+        );
+        $("#back").prop("disabled", time.pos <= 0);
+        $("#next").prop("disabled", time.pos >= time.history.length - 1);
+      }
+
+      function saveState() {
+        time = time || { history: [], pos: -1 };
+        // delete alternate future history
+        time.history.splice(time.pos + 1);
+        // push state to history
+        time.history.push(deepcopy(state));
+        time.pos++;
+        updateTimeUI();
+      }
+
+      $("#back").on("click", function () {
+        // Move history pointer
+        time.pos--;
+        updateTimeUI();
+        // Load historic state
+        state = deepcopy(time.history[time.pos]);
+        updateUI(true);
+      });
+      $("#next").on("click", function () {
+        // Move history pointer
+        time.pos++;
+        updateTimeUI();
+        // Load historic state
+        state = deepcopy(time.history[time.pos]);
+        updateUI(true);
+      });
+
+      function deepcopy(obj) {
+        return $.extend(true, {}, obj);
+      }
+    </script>
+  </body>
+</html>

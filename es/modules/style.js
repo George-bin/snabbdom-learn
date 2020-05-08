@@ -106,7 +106,7 @@ function applyRemoveStyle(vnode, rm) {
             rm();
     });
 }
-// 强迫回流
+// 强制回流
 function forceReflow() {
     reflowForced = false;
 }

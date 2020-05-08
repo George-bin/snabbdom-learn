@@ -4,15 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Snabbdom学习</title>
-    <!-- <script src="./snabbdom-master/es/snabbdom.js"></script>
-    <script src="./snabbdom-master/es/modules/class.js"></script>
-    <script src="./snabbdom-master/es/modules/props.js"></script>
-    <script src="./snabbdom-master/es/modules/style.js"></script>
-    <script src="./snabbdom-master/es/modules/eventlisteners.js"></script>
-    <script src="./snabbdom-master/es/h.js"></script> -->
   </head>
   <body>
-    <div id="app">Hello, World!</div>
+    <div id="app">
+      <p style="color: aqua;">Hello, World!</p>
+    </div>
     <script type="module">
       import { init, h } from './es/snabbdom.js';
       import classModule from './es/modules/class.js';
@@ -31,7 +27,7 @@
         propsModule,
         styleModule,
         eventListenersModule,
-    ]);
+      ]);
 
       // 获取页面原始的DOM节点
       var app = document.getElementById("app");
@@ -41,20 +37,23 @@
         {
           class: { container: true },
           style: { color: "#f00" },
-          attrs: { href: 'hello' }
+          attrs: { href: 'hello' },
+          on: {
+            click: function() {
+              alert('俺被电击了');
+            }
+          }
         },
-        "Hello, George!"
-        // [
-        //   h("p.name",
-        //     {
-        //       style: { color: "blue", fontWeight: "bold" },
-        //     },
-        //     "My name is George!"),
-        //   h("a.hi", 
-        //     {
-        //       props: { href: '/foo' }
-        //     }, "hi，我是小智")
-        // ]
+        [
+          h(
+            'h1',
+            {
+              style: { fontWeight: 'bold' }
+            },
+            'My Name is George!'
+          ),
+          "Hello, George!"
+        ]
       );
       // 第一次渲染，使用vnode替换app节点的内容
       patch(app, vnode);
@@ -75,10 +74,12 @@
         ]
       );
 
+      
       // 将新的newVnode patch到vnode中
-      // setTimeout(() => {
-      //   patch(vnode, newVnode);
-      // }, 5000);
+      setTimeout(() => {
+        debugger
+        patch(vnode, newVnode);
+      }, 5000);
     </script>
   </body>
 </html>

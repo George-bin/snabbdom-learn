@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="./utils/jquery.min.js"></script>
+  <title>virtual dom构建思想</title>
+</head>
+<body>
+  <span id="colored-counter">0</span>
+  <input type="text" id="color" />
+  <button id="inc">+</button>
+  <script>
+    // 第一种方案：普通事件监听
+    // $('#color').on('keyup', function() {
+    //   $('#colored-counter').css('color', this.value);
+    // });
+    // $('#inc').on('click', function() {
+    //   var oldValue = $('#colored-counter').html();
+    //   var newValue = 1 + Number(oldValue);
+    //   $('#colored-counter').html(newValue);
+    // });
+
+    // 第二中方案：通过对象状态来控制UI更新
+    var state = {
+      color: '',
+      value: 0
+    }
+    function updateUI() {
+      $('#colored-counter').css('color', state.color);
+      $('#colored-counter').html(state.value);
+    }
+    $('#color').on('keyup', function() {
+      state.color = this.value;
+      updateUI();
+    });
+    $('#inc').on('click', function() {
+      state.value++;
+      updateUI();
+    });
+
+  </script>
+</body>
+</html>
