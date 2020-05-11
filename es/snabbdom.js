@@ -56,7 +56,7 @@ export function init(modules, domApi) {
         }
     }
 
-    // 为真实dom创建一个空的vnode
+    // 将真实dom转换为一个空的vnode
     function emptyNodeAt(elm) {
         var id = elm.id ? '#' + elm.id : '';
         var c = elm.className ? '.' + elm.className.split(' ').join('.') : '';
@@ -329,44 +329,66 @@ export function init(modules, domApi) {
         // 获取老节点中的children
         var oldCh = oldVnode.children;
         var ch = vnode.children;
+        // 引用相同，表示没有改变
         if (oldVnode === vnode)
             return;
-        /**
-         * 调用cbs的所有模块的update方法更新对应的实际内容:
-         * 使用vnode中的属性同步oldvnode中的属性 => 调用create钩子中的所有update方法（class, props, style, event）
-         */
+
+        // 如果vnode和oldvnode相似，对oldvnode本身进行更新
         if (vnode.data !== undefined) {
-            // 如果 vnode 的 data 不为空，那么执行 update
+            // 1、首先执行全局的update钩子，对vnode.elm本身属性进行更新
             for (var i_3 = 0; i_3 < cbs.update.length; ++i_3)
                 cbs.update[i_3](oldVnode, vnode);
-            // 执行 vnode.data.hook.update 钩子。
+            // 2、然后调用vnode.data中的update方法，再次对vnode.elm进行更新（执行 vnode.data.hook.update 钩子）
             (_d = (_c = vnode.data.hook) === null || _c === void 0 ? void 0 : _c.update) === null || _d === void 0 ? void 0 : _d.call(_c, oldVnode, vnode);
         }
-        // text为undefined
+
+        /**
+         * 分情况讨论：
+         * ps：如果本身存在文本节点，则不存在子节点，即：有text就不会存在ch，反之亦然。
+         * 1 vnode不是文本节点
+         *  1.1 vnode不是文本节点，vnode还存在子节点
+         *      1.1.1 vnode不是文本节点，vnode中存在子节点，oldvnode中存在子节点
+         *      1.1.2 vnode不是文本节点，vnode中存在子节点，oldvnode中不存在子节点
+         *          1.1.2.1 vnode不是文本节点，vnode中存在子节点，oldvnode中不存在子节点，oldvnode是文本节点
+         *  1.2 vnode不是文本节点，vnode中不存在文本节点
+         *      1.2.1 vnode不是文本节点，vnode中不存在子节点，oldvnode中存在子节点
+         *      1.2.2 vnode不是文本节点，vnode中不存在子节点，oldvnode是文本节点
+         * 2 vnode是文本节点
+         *  2.1 vnode不是文本节点，并且oldvnode和vnode的文本节点不相等
+         *  ps：这里只需要讨论这一种情况，因为如果old存在子节点，那么文本节点text为undefined，则与new的text不相等直接node.textContent即可清楚old存在的子节点。若old存在子节点，且相等则无需修改
+         */
+        // 1.
         if (isUndef(vnode.text)) {
+            // 1.1.1
             if (isDef(oldCh) && isDef(ch)) {
-                // 新老子节点都存在的情况下，更新子节点
+                // 当vnode和oldvnode中都存在子节点并且子节点不相同时，则更新子节点
                 if (oldCh !== ch)
                     updateChildren(elm, oldCh, ch, insertedVnodeQueue);
             }
+            // 1.1.2
             else if (isDef(ch)) {
-                // 如果 oldVnode 是文本节点，而更新后 vnode 包含 children；
-                // 那就先移除 oldVnode 的文本节点，然后添加 vnode。
+                // oldvnode是文本节点，则将elm中的text清除
+                // 1.1.2.1
                 if (isDef(oldVnode.text))
                     api.setTextContent(elm, '');
+                // 将vnode中children添加到elm中
                 addVnodes(elm, null, ch, 0, ch.length - 1, insertedVnodeQueue);
             }
+            // 1.2.1
+            // 如果oldvnode中存在子节点，而vnode中不存在字节点，则移除elm中children
             else if (isDef(oldCh)) {
                 // 如果 oldVnode 有 children，而新的 vnode 只有文本节点；
                 // 那就移除 vnode 即可。
                 removeVnodes(elm, oldCh, 0, oldCh.length - 1);
             }
+            // 1.2.2
+            // 如果oldvnode是文本节点，vnode和oldvnode都没有children且vnode中没有text，则删除oldvnode中text
             else if (isDef(oldVnode.text)) {
-                // 如果更新前后，vnode 都没有 children，那么就添加空的文本节点，因为大前提是 vnode.text === undefined。
                 api.setTextContent(elm, '');
             }
         }
-        // text不为undefined，并且oldVnode.text !== vnode.text
+        // vnode是文本节点
+        // 2.1
         else if (oldVnode.text !== vnode.text) {
             // 如果 oldVnode 具有 children 属性（具有 vnode），那么移除所有 vnode。
             if (isDef(oldCh)) {
@@ -375,38 +397,32 @@ export function init(modules, domApi) {
             // 设置文本内容
             api.setTextContent(elm, vnode.text);
         }
-        // 完成了更新，调用 postpatch 钩子函数
+
+        // patch对比完成，触发 postpatch 钩子
         (_e = hook === null || hook === void 0 ? void 0 : hook.postpatch) === null || _e === void 0 ? void 0 : _e.call(hook, oldVnode, vnode);
     }
     // 修补节点
     return function patch(oldVnode, vnode) {
         var i, elm, parent;
         // insertedVnodeQueue存在于整个patch过程
-        // 用于收集patch中新插入的Vnode
+        // 记录被插入的vnode队列，用于批量触发insert
         var insertedVnodeQueue = [];
-        /**
-         * 在进行patch之前，我们需要运行prepatch hook:
-         * 1、cbs是init函数变量，即patch函数是init的闭包；
-         * 2、这里，不必理会lifecycle hook，而只关注vdom diff算法；
-         * 3、先调用pre回调。
-         */
+        
+        // patch开始之前调用全局钩子pre
         for (i = 0; i < cbs.pre.length; ++i)
             cbs.pre[i]();
         
-        // 如果老节点非vnode，则创建一个空的vnode（第一次调用时，oldVnode是dom element）
+        // 如果oldvnode非vnode，则创建一个空的vnode（第一次调用时，oldVnode是dom element）
         if (!isVnode(oldVnode)) {
             oldVnode = emptyNodeAt(oldVnode);
         }
 
-        /**
-         * 
-         */
-        // 如果是同个节点，则进行修补
+        // 如果是同个节点，则进行修补（sel值和key值相同）
         if (sameVnode(oldVnode, vnode)) {
             patchVnode(oldVnode, vnode, insertedVnodeQueue);
         }
         else {
-            // 不同的vnode节点则创建
+            // 不是同一个节点，将新的vnode插入，并将oldvnode从其父节点上删除
             elm = oldVnode.elm;
             parent = api.parentNode(elm);
             createElm(vnode, insertedVnodeQueue);
@@ -416,13 +432,17 @@ export function init(modules, domApi) {
                 removeVnodes(parent, [oldVnode], 0, 0);
             }
         }
-        // 遍历所有收集到的插入节点，调用插入的钩子
+
+        // 插入完后，调用被插入的vnode的insert钩子
         for (i = 0; i < insertedVnodeQueue.length; ++i) {
             insertedVnodeQueue[i].data.hook.insert(insertedVnodeQueue[i]);
         }
-        // 调用post钩子
+
+        // patch结束之前，调用全局post钩子
         for (i = 0; i < cbs.post.length; ++i)
             cbs.post[i]();
+
+        // 返回最新的vnode，供下次更新使用
         return vnode;
     };
 }

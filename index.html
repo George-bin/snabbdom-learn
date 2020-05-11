@@ -8,9 +8,12 @@
   <body>
     <div id="app">
       <p style="color: aqua;">Hello, World!</p>
+      <!-- 123 -->
     </div>
     <script type="module">
       import { init, h } from './es/snabbdom.js';
+      import datasetModule from './es/modules/dataset.js';
+      import attributesModule from './es/modules/attributes.js';
       import classModule from './es/modules/class.js';
       import propsModule from './es/modules/props.js';
       import styleModule from './es/modules/style.js';
@@ -21,8 +24,9 @@
        * 2、定义了程序运行期间的所有钩子，每个钩子对应所有模块中对应的生命周期函数；
        * 3、在patch函数的各个阶段调用对应的钩子 => 即：所有模块中的对应生命周期函数。
        */
-      debugger
       var patch = init([
+        datasetModule,
+        attributesModule,
         classModule,
         propsModule,
         styleModule,
@@ -42,6 +46,33 @@
             click: function() {
               alert('俺被电击了');
             }
+          },
+          hook: {
+            init: function() {
+              console.log('init')
+            },
+            create: function() {
+              console.log('create')
+            },
+            insert: function() {
+              console.log('insert')
+            },
+            prepatch: function() {
+              console.log('beforePatch')
+            },
+            update: function() {
+              console.log('update')
+            },
+            postpatch: function() {
+              console.log('postPatch')
+            },
+            destroy: function() {
+              console.log('destroy')
+            },
+            remove: function(ch, rm) {
+              console.log('remove')
+              rm();
+            }
           }
         },
         [
@@ -56,30 +87,29 @@
         ]
       );
       // 第一次渲染，使用vnode替换app节点的内容
-      patch(app, vnode);
+      vnode = patch(app, vnode);
 
       // 创建一个新的vnode
-      var newVnode = h('div#app',
-        {style: {color: 'red'}},
-        [
-          h('p.name', 
-          {
-            style: {fontWeight: 'normal'}
-          }, "My name is tugenhua"),
-          ' and yyyyy',
-          h('a',
-            {
-              props: {href: '/bar'}
-            }, '我是空智22')
-        ]
-      );
+      // var newVnode = h('div#app',
+      //   {style: {color: 'red'}},
+      //   [
+      //     h('p.name', 
+      //     {
+      //       style: {fontWeight: 'normal'}
+      //     }, "My name is tugenhua"),
+      //     ' and yyyyy',
+      //     h('a',
+      //       {
+      //         props: {href: '/bar'}
+      //       }, '我是空智22')
+      //   ]
+      // );
 
       
       // 将新的newVnode patch到vnode中
-      setTimeout(() => {
-        debugger
-        patch(vnode, newVnode);
-      }, 5000);
+      // setTimeout(() => {
+      //   patch(vnode, newVnode);
+      // }, 5000);
     </script>
   </body>
 </html>

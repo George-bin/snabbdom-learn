@@ -12,13 +12,18 @@ function addNS(data, children, sel) {
     }
 }
 
-// 将用户挂载数据转换成vnode
+/**
+ * 构建vnode
+ * @param sel 选择器
+ * @param b 数据
+ * @param c 子节点
+ */
 export function h(sel, b, c) {
     var data = {}; // 属性：样式、属性、class名等
     var children; // 子节点类型
     var text; // 文本类型的数据(node | text)
     var i;
-    // 处理参数
+    // 三个参数
     if (c !== undefined) {
         // 三个参数的情况  sel , data , children | text
         if (b !== null) {
@@ -27,14 +32,16 @@ export function h(sel, b, c) {
         if (is.array(c)) {
             children = c;
         }
-        // 文本节点
+        // 文本（原始数据类型）
         else if (is.primitive(c)) {
             text = c;
         }
+        // dom元素
         else if (c && c.sel) {
             children = [c];
         }
     }
+    // 两个参数
     else if (b !== undefined && b !== null) { // 数据属性
         // 两个参数的情况 : sel , children | text
         // 两个参数的情况 : sel , data
