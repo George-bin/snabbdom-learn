@@ -7,8 +7,7 @@
   </head>
   <body>
     <div id="app">
-      <p style="color: aqua;">Hello, World!</p>
-      <!-- 123 -->
+      <button id="update-btn">update</button>
     </div>
     <script type="module">
       import { init, h } from './es/snabbdom.js';
@@ -39,77 +38,65 @@
       var vnode = h(
         "div#app",
         {
-          class: { container: true },
-          style: { color: "#f00" },
-          attrs: { href: 'hello' },
-          on: {
-            click: function() {
-              alert('俺被电击了');
-            }
-          },
-          hook: {
-            init: function() {
-              console.log('init')
-            },
-            create: function() {
-              console.log('create')
-            },
-            insert: function() {
-              console.log('insert')
-            },
-            prepatch: function() {
-              console.log('beforePatch')
-            },
-            update: function() {
-              console.log('update')
-            },
-            postpatch: function() {
-              console.log('postPatch')
-            },
-            destroy: function() {
-              console.log('destroy')
-            },
-            remove: function(ch, rm) {
-              console.log('remove')
-              rm();
-            }
-          }
+          style: { color: "#f00" }
         },
         [
           h(
             'h1',
             {
-              style: { fontWeight: 'bold' }
+              style: { fontWeight: 'bold' },
+              hook: {
+                init: function(vnode) {
+                  console.log('init')
+                  vnode.text = '我是在用户自定义的init钩子中定义的！'
+                },
+                create: function(hook, emptyNode, vnode) {
+                  console.log('create')
+                },
+                insert: function() {
+                  console.log('insert')
+                },
+                prepatch: function() {
+                  console.log('beforePatch')
+                },
+                update: function() {
+                  console.log('update')
+                },
+                postpatch: function() {
+                  console.log('postPatch')
+                },
+                destroy: function() {
+                  console.log('destroy')
+                },
+                remove: function(ch, rm) {
+                  console.log('remove')
+                  rm();
+                }
+              }
             },
-            'My Name is George!'
-          ),
-          "Hello, George!"
+            'My name is George!'
+          )
         ]
       );
       // 第一次渲染，使用vnode替换app节点的内容
       vnode = patch(app, vnode);
 
       // 创建一个新的vnode
-      // var newVnode = h('div#app',
-      //   {style: {color: 'red'}},
-      //   [
-      //     h('p.name', 
-      //     {
-      //       style: {fontWeight: 'normal'}
-      //     }, "My name is tugenhua"),
-      //     ' and yyyyy',
-      //     h('a',
-      //       {
-      //         props: {href: '/bar'}
-      //       }, '我是空智22')
-      //   ]
-      // );
-
-      
-      // 将新的newVnode patch到vnode中
-      // setTimeout(() => {
-      //   patch(vnode, newVnode);
-      // }, 5000);
+      var newVnode = h('div#app',
+        {style: {color: 'red'}},
+        [
+          h(
+            'h1', 
+            {},
+            'My name is GaoShaSha'
+          )
+        ]
+      );
+      let updateBtn = document.getElementById('update-btn');
+      updateBtn.addEventListener('click', updateVnode)
+      function updateVnode() {
+        patch(vnode, newVnode);
+      }
     </script>
   </body>
 </html>
