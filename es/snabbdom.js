@@ -337,7 +337,7 @@ export function init(modules, domApi) {
         // 如果用户自定义了 vnode.data.hook.prepatch，则执行 prepatch 钩子
         (_b = hook === null || hook === void 0 ? void 0 : hook.prepatch) === null || _b === void 0 ? void 0 : _b.call(hook, oldVnode, vnode);
         
-        // 获取dom elm，就是将要修改的dom节点
+        // 获取dom elm（就是将要修改的dom节点）
         var elm = vnode.elm = oldVnode.elm;
 
         // 获取新旧虚拟dom的子元素（children属性）

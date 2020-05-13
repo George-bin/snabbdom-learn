@@ -7,7 +7,7 @@
   </head>
   <body>
     <div id="app">
-      <button id="update-btn">update</button>
+      <!-- <button id="update-btn">update</button> -->
     </div>
     <script type="module">
       import { init, h } from './es/snabbdom.js';
@@ -75,7 +75,8 @@
               }
             },
             'My name is George!'
-          )
+          ),
+          '我是一个文本节点！'
         ]
       );
       // 第一次渲染，使用vnode替换app节点的内容
