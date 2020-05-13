@@ -330,7 +330,6 @@ export function init(modules, domApi) {
      * insertedVnodeQueue: 用于收集patch中新插入的Vnode
      */
     function patchVnode(oldVnode, vnode, insertedVnodeQueue) {
-        debugger
         var _a, _b, _c, _d, _e;
         // 用户是否定义了hook
         var hook = (_a = vnode.data) === null || _a === void 0 ? void 0 : _a.hook;
@@ -419,9 +418,9 @@ export function init(modules, domApi) {
 
     // 修补节点
     return function patch(oldVnode, vnode) {
+        debugger
         var i, elm, parent;
-        // insertedVnodeQueue存在于整个patch过程
-        // 记录被插入的vnode队列，用于批量触发insert
+        // insertedVnodeQueue用于记录被插入的真实dom的vnode队列，用于批量触发insert
         var insertedVnodeQueue = [];
         
         // patch开始之前调用全局钩子pre

@@ -28,6 +28,7 @@ function updateStyle(oldVnode, vnode) {
     oldStyle = oldStyle || {};
     style = style || {};
     var oldHasDel = 'delayed' in oldStyle;
+    // 遍历oldStyle
     for (name in oldStyle) {
         if (!style[name]) {
             if (name[0] === '-' && name[1] === '-') {
@@ -38,7 +39,7 @@ function updateStyle(oldVnode, vnode) {
             }
         }
     }
-    // 遍历新的style
+    // 遍历style
     for (name in style) {
         cur = style[name];
         if (name === 'delayed' && style.delayed) {
@@ -49,7 +50,7 @@ function updateStyle(oldVnode, vnode) {
                 }
             }
         }
-        // 新增style
+        // 新增style样式
         else if (name !== 'remove' && cur !== oldStyle[name]) {
             if (name[0] === '-' && name[1] === '-') {
                 elm.style.setProperty(name, cur);
@@ -71,6 +72,7 @@ function applyDestroyStyle(vnode) {
         elm.style[name] = style[name];
     }
 }
+// 删除样式
 function applyRemoveStyle(vnode, rm) {
     var s = vnode.data.style;
     if (!s || !s.remove) {
