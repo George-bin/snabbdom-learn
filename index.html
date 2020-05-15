@@ -38,7 +38,14 @@
       var vnode = h(
         "div#app",
         {
-          style: { color: "#f00" }
+          style: { color: "#f00" },
+          class: {
+            active: true
+          },
+          hook: {
+            init: function() {},
+            prepatch: function() {}
+          }
         },
         [
           h(
@@ -79,11 +86,12 @@
           '我是一个文本节点！'
         ]
       );
+      console.log(vnode)
       // 第一次渲染，使用vnode替换app节点的内容
       vnode = patch(app, vnode);
 
       // 创建一个新的vnode
-      var newVnode = h('div#app',
+      var newVnode = h('div#app1',
         {style: {color: 'red'}},
         [
           h(

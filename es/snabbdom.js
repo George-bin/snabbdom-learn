@@ -324,8 +324,8 @@ export function init(modules, domApi) {
     }
 
     /**
-     * 两个vnode相似，对比更新dom节点（对比两个Vnode）:
-     * oldVnode: 老Vnode
+     * 对比新旧vnode，更新dom节点:
+     * oldVnode: 旧Vnode
      * vnode: 新vnode
      * insertedVnodeQueue: 用于收集patch中新插入的Vnode
      */
