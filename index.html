@@ -37,75 +37,48 @@
       // 构造一个虚拟dom => 通过h函数建立虚拟dom的 => 生成vnode
       var vnode = h(
         "div#app",
-        {
-          style: { color: "#f00" },
-          class: {
-            active: true
-          },
-          hook: {
-            init: function() {},
-            prepatch: function() {}
-          }
-        },
+        {},
         [
           h(
             'h1',
             {
-              style: { fontWeight: 'bold' },
-              hook: {
-                init: function(vnode) {
-                  console.log('init')
-                  vnode.text = '我是在用户自定义的init钩子中定义的！'
-                },
-                create: function(hook, emptyNode, vnode) {
-                  console.log('create')
-                },
-                insert: function() {
-                  console.log('insert')
-                },
-                prepatch: function() {
-                  console.log('beforePatch')
-                },
-                update: function() {
-                  console.log('update')
-                },
-                postpatch: function() {
-                  console.log('postPatch')
-                },
-                destroy: function() {
-                  console.log('destroy')
-                },
-                remove: function(ch, rm) {
-                  console.log('remove')
-                  rm();
-                }
+              on: {
+                // click: [[fun1], [fun2]]
+                click: [fun1, 'Hello']
               }
             },
-            'My name is George!'
-          ),
-          '我是一个文本节点！'
+            'George'
+          )
         ]
       );
+      function fun1(value, e, vnode) {
+        console.log('fun1')
+        console.log(value, e, vnode)
+      }
+      function fun2(e, vnode) {
+        console.log('fun2')
+        console.log(e, vnode)
+      }
       console.log(vnode)
       // 第一次渲染，使用vnode替换app节点的内容
       vnode = patch(app, vnode);
 
       // 创建一个新的vnode
-      var newVnode = h('div#app1',
-        {style: {color: 'red'}},
-        [
-          h(
-            'h1', 
-            {},
-            'My name is GaoShaSha'
-          )
-        ]
-      );
-      let updateBtn = document.getElementById('update-btn');
-      updateBtn.addEventListener('click', updateVnode)
-      function updateVnode() {
-        patch(vnode, newVnode);
-      }
+      // var newVnode = h('div#app1',
+      //   {style: {color: 'red'}},
+      //   [
+      //     h(
+      //       'h1', 
+      //       {},
+      //       'My name is GaoShaSha'
+      //     )
+      //   ]
+      // );
+      // let updateBtn = document.getElementById('update-btn');
+      // updateBtn.addEventListener('click', updateVnode)
+      // function updateVnode() {
+      //   patch(vnode, newVnode);
+      // }
     </script>
   </body>
 </html>
