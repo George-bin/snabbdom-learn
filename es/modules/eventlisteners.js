@@ -47,13 +47,11 @@ function handleEvent(event, vnode) {
 function createListener() {
     // 事件处理器
     return function handler(event) {
-        debugger
         handleEvent(event, handler.vnode);
     };
 }
 // 对比oldVnode和vnode，更新事件监听器
 function updateEventListeners(oldVnode, vnode) {
-    debugger
     var oldOn = oldVnode.data.on;
     var oldListener = oldVnode.listener;
     var oldElm = oldVnode.elm;

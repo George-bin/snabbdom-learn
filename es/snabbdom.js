@@ -65,7 +65,11 @@ export function init(modules, domApi) {
         return vnode(api.tagName(elm).toLowerCase() + id + c, {}, [], undefined, elm);
     }
 
-    // 创建一个删除的回调，多次调用这个回调，直到监听器都没了，就删除元素
+    /**
+     * 创建一个删除的回调（这里需要全局remove钩子执行完毕，才能删除真实DOM元素）
+     * @params childELm：将要被删除的Vnode数组（每个Vnode对应一个真实的dom元素）
+     * @params listeners：全局remove钩子的数量
+     */
     function createRmCb(childElm, listeners) {
         return function rmCb() {
             if (--listeners === 0) {
@@ -75,13 +79,17 @@ export function init(modules, domApi) {
         };
     }
 
-    // 将Vnode转换成真实的DOM
+    /**
+     * 利用vnode创建真实dom节点
+     * vnode: vnode数据
+     * insertedVnodeQueue: 用于收集新插入的dom元素（子vnode）
+     */
     function createElm(vnode, insertedVnodeQueue) {
         var _a, _b;
         var i;
         var data = vnode.data;
         if (data !== undefined) {
-            // 如果自定义了init钩子函数（ vnode.data.hook.init ），则调用该钩子函数
+            // 调用自定义钩子init（ 如果存在 => vnode.data.hook.init ）
             var init_1 = (_a = data.hook) === null || _a === void 0 ? void 0 : _a.init;
             if (isDef(init_1)) {
                 init_1(vnode);
@@ -97,6 +105,7 @@ export function init(modules, domApi) {
             }
             vnode.elm = api.createComment(vnode.text);
         }
+        // 普通dom元素
         else if (sel !== undefined) {
             // 解析选择器（Parse selector）
             var hashIdx = sel.indexOf('#'); // id
@@ -115,11 +124,10 @@ export function init(modules, domApi) {
             if (dotIdx > 0)
                 elm.setAttribute('class', sel.slice(dot + 1).replace(/\./g, ' '));
 
-            // 执行所有模块的 create 钩子，创建对应的内容（全局钩子create）
+            // 调用全局钩子create
             for (i = 0; i < cbs.create.length; ++i)
                 cbs.create[i](emptyNode, vnode);
-            // 如果存在 children ，则创建children
-            // 如果存在子元素Vnode节点，则递归将子元素节点插入到当前Vnode节点中，并将已插入的子元素节点在insertedVnodeQueue中作记录
+            // 如果存在 children ，则递归创建真实dom（子元素）节点并插入到其父节点中
             if (is.array(children)) {
                 for (i = 0; i < children.length; ++i) {
                     var ch = children[i];
@@ -128,28 +136,36 @@ export function init(modules, domApi) {
                     }
                 }
             }
-            // 如果存在子文本节点，则直接将其插入到当前Vnode节点
+            // 如果存在子文本节点，则将其插入到当前真实DOM节点中
             else if (is.primitive(vnode.text)) {
                 api.appendChild(elm, api.createTextNode(vnode.text));
             }
 
-            // 如果自定义了create钩子，则调用（执行 vnode.data.hook 中的 create 钩子）
+            // 调用自定义了create钩子（如果存在 => vnode.data.hook.create）
             var hook = vnode.data.hook;
             if (isDef(hook)) {
                 (_b = hook.create) === null || _b === void 0 ? void 0 : _b.call(hook, emptyNode, vnode);
                 if (hook.insert) {
+                    // 将创建dom元素成功的vnode添加到insertedVnodeQueue中
                     insertedVnodeQueue.push(vnode);
                 }
             }
         }
+        // 文本节点
         else {
-            // sel 不存在的情况， 即为文本节点
             vnode.elm = api.createTextNode(vnode.text);
         }
         return vnode.elm;
     }
 
-    // 添加Vnode到真实DOM中
+    /**
+     * 遍历Vnodes并创建真实dom元素插入到指定元素之前
+     * parentElm: 真实dom元素（父节点）
+     * vnodes: 将要要插入的vnode数组
+     * startIdx: 在vnodes中开始截取的位置
+     * endIdx: 在vnodes中结束截取的位置﻿
+     * insertedVnodeQueue: 用于收集新插入的dom元素（子vnode）
+     */
     function addVnodes(parentElm, before, vnodes, startIdx, endIdx, insertedVnodeQueue) {
         for (; startIdx <= endIdx; ++startIdx) {
             var ch = vnodes[startIdx];
@@ -159,14 +175,20 @@ export function init(modules, domApi) {
         }
     }
     
-    // 卸载元素
+    /**
+     * 调用卸载钩子（destroy）
+     * vnode：将被删除dom的元素的vnode数据
+     */
     function invokeDestroyHook(vnode) {
         var _a, _b;
         var data = vnode.data;
         if (data !== undefined) {
+            // 用户自定义钩子destroy(如果存在)
             (_b = (_a = data === null || data === void 0 ? void 0 : data.hook) === null || _a === void 0 ? void 0 : _a.destroy) === null || _b === void 0 ? void 0 : _b.call(_a, vnode);
+            // 全局钩子destroy
             for (var i_1 = 0; i_1 < cbs.destroy.length; ++i_1)
                 cbs.destroy[i_1](vnode);
+            // 判断是否存在子元素，循环遍历调用invokeDestroyHook
             if (vnode.children !== undefined) {
                 for (var j_1 = 0; j_1 < vnode.children.length; ++j_1) {
                     var child = vnode.children[j_1];
@@ -178,7 +200,13 @@ export function init(modules, domApi) {
         }
     }
 
-    // 删除vnode
+    /**
+     * 从真实dom节点中移除子元素
+     * @params parentElm: 真实dom节点（父节点）
+     * @params vnodes: 将要被删除的所有子元素对应的vnode数组
+     * @params startIdx: 在数组中开始截取的位置
+     * @params endIdx: 在数据中结束截取的位置
+     */
     function removeVnodes(parentElm, vnodes, startIdx, endIdx) {
         var _a, _b;
         for (; startIdx <= endIdx; ++startIdx) {
@@ -186,15 +214,18 @@ export function init(modules, domApi) {
             var rm = void 0;
             var ch = vnodes[startIdx];
             if (ch != null) {
+                // 判断是否为文本节点
                 if (isDef(ch.sel)) {
+                    // 调用全局钩子destroy
                     invokeDestroyHook(ch);
                     listeners = cbs.remove.length + 1;
-                    // 所有监听删除
+                    // 生成删除回调
                     rm = createRmCb(ch.elm, listeners);
+                    // 调用全局钩子remove
                     for (var i_2 = 0; i_2 < cbs.remove.length; ++i_2)
                         cbs.remove[i_2](ch, rm);
                     var removeHook = (_b = (_a = ch === null || ch === void 0 ? void 0 : ch.data) === null || _a === void 0 ? void 0 : _a.hook) === null || _b === void 0 ? void 0 : _b.remove;
-                    // 如果有钩子则调用钩子后再调删除回调，如果没，则直接调用回调
+                    // 是否存在自定义钩子remove，如果存在则调用自定义钩子后再调删除回调，如果不存在，则直接调用删除回调
                     if (isDef(removeHook)) {
                         removeHook(ch, rm);
                     }
@@ -210,11 +241,11 @@ export function init(modules, domApi) {
     }
 
     /**
-     * 更新vnode children:
-     * parentElm: 真实要挂载到的DOM元素
-     * oldCh: 老Vnode中的子节点
-     * newCh: 新Vnode中的子节点
-     * insertedVnodeQueue: 用于收集patch中新插入的Vnode
+     * 对比oldVnode.children和vnode.children，更新真实DOM的子节点
+     * parentElm: 真实DOM节点
+     * oldCh: oldVnode.children
+     * newCh: vnode.children
+     * insertedVnodeQueue: 用于收集新插入的dom元素（子vnode）
      */
     function updateChildren(parentElm, oldCh, newCh, insertedVnodeQueue) {
         // 首对比位置
@@ -223,15 +254,15 @@ export function init(modules, domApi) {
         // 尾对比位置
         var oldEndIdx = oldCh.length - 1;
         var newEndIdx = newCh.length - 1;
-        // 第一个子vnode
+        // oldCh和newCh的首
         var oldStartVnode = oldCh[0];
         var newStartVnode = newCh[0];
-        // 最后一个子vnode
+        //  oldCh和newCh的尾
         var oldEndVnode = oldCh[oldEndIdx];
         var newEndVnode = newCh[newEndIdx];
-        var oldKeyToIdx;
-        var idxInOld;
-        var elmToMove;
+        var oldKeyToIdx;// 首尾都不相同 => 建立key和索引（0,1,2,...）之间的映射表（oldVnode.children）
+        var idxInOld; // 首尾都不相同 => 通过key来获取在映射表中的索引
+        var elmToMove; // 首尾都不相同 => 通过索引（0,1,2,...）在oldCh匹配的元素
         var before;
 
         // 循环遍历对比oldVnode和vnode，只要有一个遍历结束便退出循环
@@ -312,7 +343,8 @@ export function init(modules, domApi) {
         if (oldStartIdx <= oldEndIdx || newStartIdx <= newEndIdx) {
             // oldCh先遍历结束，说明newCh中还有vnode元素，直接进行一次性插入
             if (oldStartIdx > oldEndIdx) {
-                before = newCh[newEndIdx + 1] == null ? null : newCh[newEndIdx + 1].elm; // newCh尾部子元素可能在oldCh中存在，直接在该dom节点之前插入节点即可
+                // newCh数组中在其尾部的子元素可能存在已经处理过的，直接在尾部处理节点之前插入节点即可
+                before = newCh[newEndIdx + 1] == null ? null : newCh[newEndIdx + 1].elm;
                 addVnodes(parentElm, before, newCh, newStartIdx, newEndIdx, insertedVnodeQueue);
             }
             // newCh先遍历结束，说明oldCh中还有vnode元素，直接全部删除即可
@@ -418,17 +450,17 @@ export function init(modules, domApi) {
 
     // 修补节点
     return function patch(oldVnode, vnode) {
-        debugger
         var i, elm, parent;
-        // insertedVnodeQueue用于记录被插入的真实dom的vnode队列，用于批量触发insert
+        // insertedVnodeQueue存在于整个patch过程，用于记录被插入的真实dom对应的vnode，对比结束后用于批量触发insert
         var insertedVnodeQueue = [];
         
-        // patch开始之前调用全局钩子pre
+        // 调用全局钩子pre
         for (i = 0; i < cbs.pre.length; ++i)
             cbs.pre[i]();
         
-        // 如果oldvnode非vnode，则创建一个空的vnode（第一次调用时，oldVnode是dom element）
+        // 判断是否为初始化渲染（第一次调用时，oldVnode是dom element）
         if (!isVnode(oldVnode)) {
+            // 初始化渲染时，由于oldVnode为真实dom节点需要为其创建一个空的Vnode
             oldVnode = emptyNodeAt(oldVnode);
         }
 
@@ -448,12 +480,12 @@ export function init(modules, domApi) {
             }
         }
 
-        // 插入完后，调用被插入的vnode的insert钩子
+        // 对比更新完成，调用所有被插入的dom节点（vnode）的insert钩子
         for (i = 0; i < insertedVnodeQueue.length; ++i) {
             insertedVnodeQueue[i].data.hook.insert(insertedVnodeQueue[i]);
         }
 
-        // patch结束之前，调用全局post钩子
+        // 调用全局post钩子
         for (i = 0; i < cbs.post.length; ++i)
             cbs.post[i]();
 

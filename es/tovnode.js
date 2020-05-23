@@ -1,5 +1,5 @@
 import vnode from './vnode.js';
-import htmlDomApi from './htmldomapi.s';
+import htmlDomApi from './htmldomapi.js';
 export function toVNode(node, domApi) {
     var api = domApi !== undefined ? domApi : htmlDomApi;
     var text;

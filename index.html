@@ -6,10 +6,12 @@
     <title>Snabbdom学习</title>
   </head>
   <body>
-    <div id="app">
-      <button id="update-btn">update</button>
-    </div>
+    <button id="update-btn">update</button>
+    <ul id="list">
+      <li>Geng</li>
+    </ul>
     <script type="module">
+      import toVnode from './es/tovnode.js'
       import { init, h } from './es/snabbdom.js';
       import datasetModule from './es/modules/dataset.js';
       import attributesModule from './es/modules/attributes.js';
@@ -33,52 +35,93 @@
       ]);
 
       // 获取页面原始的DOM节点
-      var app = document.getElementById("app");
+      var app = document.getElementById("list");
       // 构造一个虚拟dom => 通过h函数建立虚拟dom的 => 生成vnode
+      let isActive = true
       var vnode = h(
-        "div#app",
+        "ul#list",
         {},
         [
           h(
-            'h1',
+            'li',
             {
+              style: {
+                background: 'red',
+                fontWeight: 'bold',
+                transition: 'background 1s',
+                remove: {
+                  background: 'blue'
+                }
+              },
+              hook: {
+                destroy: function() {
+                  console.log('父节点卸载前调用!')
+                },
+                remove: function(vnode, rm) {
+                  console.log('删除父节点 => li')
+                  rm()
+                }
+              },
               on: {
-                // click: [[fun1], [fun2]]
-                click: [fun1, 'Hello']
-              }
+                click: function() {
+                  console.log('我被点击了')
+                }
+              },
+              key: 1
             },
-            'George'
+            [
+              h(
+                'span',
+                {
+                  style: {
+                    display: 'inline-block',
+                    transition: 'all 1s',
+                    destroy: {
+                      fontSize: '40px',
+                      transform: 'rotate(45deg)'
+                    }
+                  },
+                  hook: {
+                    destroy: function() {
+                      console.log('子节点卸载前调用!')
+                    },
+                    remove: function() {
+                      console.log('删除子节点 => span')
+                    }
+                  }
+                },
+                'Hello World'
+              )
+            ]
+          ),
+          h(
+            'li',
+            {key: 2},
+            'b'
           )
         ]
       );
-      function fun1(value, e, vnode) {
-        console.log('fun1')
-        console.log(value, e, vnode)
-      }
-      function fun2(e, vnode) {
-        console.log('fun2')
-        console.log(e, vnode)
-      }
       console.log(vnode)
       // 第一次渲染，使用vnode替换app节点的内容
-      vnode = patch(app, vnode);
+      vnode = patch(toVnode(app), vnode);
 
       // 创建一个新的vnode
-      // var newVnode = h('div#app1',
-      //   {style: {color: 'red'}},
-      //   [
-      //     h(
-      //       'h1', 
-      //       {},
-      //       'My name is GaoShaSha'
-      //     )
-      //   ]
-      // );
-      // let updateBtn = document.getElementById('update-btn');
-      // updateBtn.addEventListener('click', updateVnode)
-      // function updateVnode() {
-      //   patch(vnode, newVnode);
-      // }
+      var newVnode = h(
+        "ul#list",
+        undefined,
+        [
+          h(
+            'li',
+            {key: 2},
+            'b'
+          )
+        ]
+      );
+      let updateBtn = document.getElementById('update-btn');
+      updateBtn.addEventListener('click', updateVnode)
+      function updateVnode() {
+        patch(vnode, newVnode);
+      }
     </script>
   </body>
 </html>

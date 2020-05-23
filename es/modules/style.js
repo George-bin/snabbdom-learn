@@ -5,7 +5,7 @@ var nextFrame = function (fn) {
         raf(fn);
     });
 };
-var reflowForced = false; // 强迫回流
+var reflowForced = false; // 强迫回流标志位
 function setNextFrame(obj, prop, val) {
     nextFrame(function () {
         obj[prop] = val;
@@ -61,6 +61,7 @@ function updateStyle(oldVnode, vnode) {
         }
     }
 }
+// 卸载元素前调用(优先级1) => 主要为被删除元素的子元素添加动画效果（transition等）
 function applyDestroyStyle(vnode) {
     var style;
     var name;
@@ -72,7 +73,7 @@ function applyDestroyStyle(vnode) {
         elm.style[name] = style[name];
     }
 }
-// 删除样式
+// 卸载元素时调用(优先级2) => 动画过后，执行删除回调
 function applyRemoveStyle(vnode, rm) {
     var s = vnode.data.style;
     if (!s || !s.remove) {
