@@ -36,11 +36,25 @@
 
       // 获取页面原始的DOM节点
       var app = document.getElementById("list");
+      // console.log(toVnode(app))
       // 构造一个虚拟dom => 通过h函数建立虚拟dom的 => 生成vnode
       let isActive = true
       var vnode = h(
         "ul#list",
-        {},
+        {
+          hook: {
+            init: (vnode) => {
+              console.log('init钩子')
+            },
+            create: () => {
+              console.log('create钩子')
+            },
+            insert: (vnode) => {
+              console.log('insert钩子！')
+              console.log(vnode)
+            }
+          }
+        },
         [
           h(
             'li',
@@ -54,6 +68,12 @@
                 }
               },
               hook: {
+                pre: () => {
+                  console.log('开始执行patch操作！')
+                },
+                init: (vnode) => {
+                  console.log('init钩子')
+                },
                 destroy: function() {
                   console.log('父节点卸载前调用!')
                 },
@@ -101,14 +121,14 @@
           )
         ]
       );
-      console.log(vnode)
+      // console.log(vnode)
       // 第一次渲染，使用vnode替换app节点的内容
-      vnode = patch(toVnode(app), vnode);
+      vnode = patch(app, vnode);
 
       // 创建一个新的vnode
       var newVnode = h(
         "ul#list",
-        undefined,
+        null,
         [
           h(
             'li',

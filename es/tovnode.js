@@ -3,6 +3,7 @@ import htmlDomApi from './htmldomapi.js';
 export function toVNode(node, domApi) {
     var api = domApi !== undefined ? domApi : htmlDomApi;
     var text;
+    // 普通节点
     if (api.isElement(node)) {
         var id = node.id ? '#' + node.id : '';
         var cn = node.getAttribute('class');
@@ -14,21 +15,25 @@ export function toVNode(node, domApi) {
         var i = void 0, n = void 0;
         var elmAttrs = node.attributes;
         var elmChildren = node.childNodes;
+        // 提取dom元素的属性信息
         for (i = 0, n = elmAttrs.length; i < n; i++) {
             name_1 = elmAttrs[i].nodeName;
             if (name_1 !== 'id' && name_1 !== 'class') {
                 attrs[name_1] = elmAttrs[i].nodeValue;
             }
         }
+        // 递归遍历子元素生成Vnode数据
         for (i = 0, n = elmChildren.length; i < n; i++) {
             children.push(toVNode(elmChildren[i], domApi));
         }
         return vnode(sel, { attrs: attrs }, children, undefined, node);
     }
+    // 文本节点
     else if (api.isText(node)) {
         text = api.getTextContent(node);
         return vnode(undefined, undefined, undefined, text, node);
     }
+    // 注释节点
     else if (api.isComment(node)) {
         text = api.getTextContent(node);
         return vnode('!', {}, [], text, node);

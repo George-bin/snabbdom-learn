@@ -450,6 +450,7 @@ export function init(modules, domApi) {
 
     // 修补节点
     return function patch(oldVnode, vnode) {
+        debugger
         var i, elm, parent;
         // insertedVnodeQueue存在于整个patch过程，用于记录被插入的真实dom对应的vnode，对比结束后用于批量触发insert
         var insertedVnodeQueue = [];
