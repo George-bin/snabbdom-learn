@@ -42,16 +42,26 @@
       var vnode = h(
         "ul#list",
         {
+          dataset: {
+            action: 'reset'
+          },
           hook: {
             init: (vnode) => {
               console.log('init钩子')
             },
-            create: () => {
+            create: (emptyVnode, vnode) => {
               console.log('create钩子')
             },
             insert: (vnode) => {
               console.log('insert钩子！')
               console.log(vnode)
+            },
+            prepatch: (oldVnode, vnode) => {
+              debugger
+              if (!vnode.data.style) {
+                vnode.data.style = {}
+                vnode.data.style.background='#f7f7f7'
+              }
             }
           }
         },
@@ -128,11 +138,23 @@
       // 创建一个新的vnode
       var newVnode = h(
         "ul#list",
-        null,
+        {
+          hook: {
+            prepatch: (oldVnode, vnode) => {
+              debugger
+            }
+          }
+        },
         [
           h(
             'li',
-            {key: 2},
+            {
+              style: {
+                color: 'red',
+                fontSize: '30px'
+              },
+              key: 2
+            },
             'b'
           )
         ]
