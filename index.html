@@ -42,6 +42,12 @@
       var vnode = h(
         "ul#list",
         {
+          props: {
+            hello: 'world'
+          },
+          attrs: {
+            type: 'button'
+          },
           dataset: {
             action: 'reset'
           },
@@ -57,11 +63,21 @@
               console.log(vnode)
             },
             prepatch: (oldVnode, vnode) => {
-              debugger
               if (!vnode.data.style) {
                 vnode.data.style = {}
                 vnode.data.style.background='#f7f7f7'
               }
+            },
+            update: (oldVnode, vnode) => {
+              debugger
+            }
+          },
+          on: {
+            click: (e) => {
+              console.log('单击事件', e)
+            },
+            dblclick: (e) => {
+              console.log('双击事件', e)
             }
           }
         },

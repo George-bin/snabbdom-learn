@@ -22,6 +22,7 @@ function updateDataset(oldVnode, vnode) {
                 }
             }
             else {
+                // 兼容性处理
                 // 将驼峰式改为中划线分割  eg: userName ----> user-name
                 elm.removeAttribute('data-' + key.replace(CAPS_REGEX, '-$&').toLowerCase());
             }
@@ -34,6 +35,7 @@ function updateDataset(oldVnode, vnode) {
                 d[key] = dataset[key];
             }
             else {
+                // 兼容性处理
                 // 将驼峰式改为中划线分割  eg: userName ----> user-name
                 elm.setAttribute('data-' + key.replace(CAPS_REGEX, '-$&').toLowerCase(), dataset[key]);
             }
